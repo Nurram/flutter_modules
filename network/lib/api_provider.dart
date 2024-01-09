@@ -9,19 +9,18 @@ class ApiProvider {
 
   factory ApiProvider() => _singleton;
 
-  late Dio _dio;
+  static late final Dio _dio;
 
-  String baseUrl = '';
+  static String _baseUrl = '';
 
-  init({required String baseUrl}) {
-    this.baseUrl = baseUrl;
+  static init({required String baseUrl}) {
+    _baseUrl = baseUrl;
 
     _dio = Dio(
       BaseOptions(
           baseUrl: baseUrl,
           receiveTimeout: const Duration(seconds: 15),
           connectTimeout: const Duration(seconds: 15),
-          sendTimeout: const Duration(seconds: 15),
           headers: {
             'Connection': 'Keep-Alive',
           },
@@ -34,14 +33,14 @@ class ApiProvider {
     String? token,
   }) async {
     try {
-      if (baseUrl.isEmpty) throw 'Network not yet initialized!';
+      if (_baseUrl.isEmpty) throw 'Network not yet initialized!';
 
       if (token != null) {
         _dio.options.headers.addAll({'Authorization': 'Bearer $token'});
       }
 
       final response = await _dio.get(endpoint);
-      return _handleResponse(response: response.data);
+      return _handleResponse(response: response);
     } on DioException catch (e) {
       throw e.message ?? 'Something happened!';
     } catch (e) {
@@ -55,14 +54,14 @@ class ApiProvider {
     String? token,
   }) async {
     try {
-      if (baseUrl.isEmpty) throw 'Network not yet initialized!';
+      if (_baseUrl.isEmpty) throw 'Network not yet initialized!';
 
       if (token != null) {
         _dio.options.headers.addAll({'Authorization': 'Bearer $token'});
       }
 
       final response = await _dio.post(endpoint, data: requestBody);
-      return _handleResponse(response: response.data);
+      return _handleResponse(response: response);
     } on DioException catch (e) {
       throw e.message ?? 'Something happened!';
     } catch (e) {
@@ -76,14 +75,14 @@ class ApiProvider {
     String? token,
   }) async {
     try {
-      if (baseUrl.isEmpty) throw 'Network not yet initialized!';
+      if (_baseUrl.isEmpty) throw 'Network not yet initialized!';
 
       if (token != null) {
         _dio.options.headers.addAll({'Authorization': 'Bearer $token'});
       }
 
       final response = await _dio.put(endpoint, data: requestBody);
-      return _handleResponse(response: response.data);
+      return _handleResponse(response: response);
     } on DioException catch (e) {
       throw e.message ?? 'Something happened!';
     } catch (e) {
@@ -96,7 +95,7 @@ class ApiProvider {
     String? token,
   ) async {
     try {
-      if (baseUrl.isEmpty) throw 'Network not yet initialized!';
+      if (_baseUrl.isEmpty) throw 'Network not yet initialized!';
 
       _dio.options.headers.addAll({'Authorization': 'Bearer $token'});
 
@@ -114,7 +113,7 @@ class ApiProvider {
     String? token,
   }) async {
     try {
-      if (baseUrl.isEmpty) throw 'Network not yet initialized!';
+      if (_baseUrl.isEmpty) throw 'Network not yet initialized!';
 
       if (token != null) {
         _dio.options.headers.addAll({'Authorization': 'Bearer $token'});
@@ -122,7 +121,7 @@ class ApiProvider {
       _dio.options.headers['content-type'] = 'multipart/form-data';
 
       final response = await _dio.put(endpoint, data: requestBody);
-      return _handleResponse(response: response.data);
+      return _handleResponse(response: response);
     } on DioException catch (e) {
       throw e.message ?? 'Something happened!';
     } catch (e) {
@@ -130,15 +129,10 @@ class ApiProvider {
     }
   }
 
-  _handleResponse({required dynamic response}) {
+  _handleResponse({required Response response}) {
     try {
       final data = response.data;
-
-      if (data['response']['status'] != 200) {
-        throw data['error_desc'];
-      }
-
-      return data['data'];
+      return data['results'];
     } catch (e) {
       rethrow;
     }
